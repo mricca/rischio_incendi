@@ -3,6 +3,21 @@
 """
 Calcolo della maschera finale VERO-FALSO per individuare
 le finestre ambientali per l'applicazione del fuoco prescritto.
+
+ctl file
+dset ^/home/lamma/data/grib/all_ecm_3km/incendi/incendi_arw_ecm_3km_run00.gra
+undef 9.999E+20
+title Model Data for Fire
+xdef 267 LINEAR 8 0.03
+ydef 201 LINEAR 40 0.03
+zdef 1 levels 1000
+tdef 3 linear 00Z18FEB2020 1dy
+vars 4
+tmpsfc 0 11,1,0 ** Mean Daily T2m [C]
+apcpsfc 0 61,1,0 ** Total Daily precipitation [kg/m^2]
+rhsfc 0 52,1,0 ** Mean Daily 2m Relative Humidity [%]
+wind10m 0 32,105,10 ** Mean Daily 10 m Wind Velocity [m/s]
+endvars
 """
 
 import os
