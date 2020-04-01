@@ -78,13 +78,58 @@ def check_haines_index_type(type):
     if(type == 'high'):
         return [700, 500]
 
+def check_termine_a(params):
+    dict = {
+        "low": {
+            'one': [3],
+            'two': [3, 8],
+            'three': [8]
+        },
+        "mid": {
+            'one': [5],
+            'two': [5, 11],
+            'three': [11]
+        },
+        "high": {
+            'one': [17],
+            'two': [17, 22],
+            'three': [22]
+        }
+    }
+    termine_a = dict.get(params)
+    return termine_a
+
+def check_termine_b(params):
+    dict = {
+        "low": {
+            'one': [5],
+            'two': [5, 10],
+            'three': [10]
+        },
+        "mid": {
+            'one': [5],
+            'two': [5, 13],
+            'three': [13]
+        },
+        "high": {
+            'one': [14],
+            'two': [14, 21],
+            'three': [21]
+        }
+    }
+    termine_b = dict.get(params)
+    return termine_b
+
 def write_haines_array(key, value, src_ds, variable_dict, i, writegeotiff, variable_haines_list):
 
         """Estraggo il tempo"""
         tempo = variable_dict['tempi'][i]
 
         """
-        (A) Calcolo 0000 GMT lapse rate
+        (A) Calcolo 0000 GMT lapse rate DIFFERENZA FRA TEMPERATURE A DIVERSI LIVELLI DI PRESSIONE
+        Q < 300         ->> 950 - 850 (LOW)
+        300 >= Q <= 900 ->> 850 - 700 (MID)
+        Q > 900         ->> 700 - 500 (HIGH)
         """
         lapse_rate = variable_dict['temperature_sup_dataset_array_dict'][key][tempo] - variable_dict['temperature_inf_dataset_array_dict'][key][tempo]
 
@@ -93,14 +138,20 @@ def write_haines_array(key, value, src_ds, variable_dict, i, writegeotiff, varia
             write_geotiff('haines_images/lapse_rate_values', tempo, src_ds, lapse_rate, key)
 
         """Calcolo Factor Values (A)"""
-        lapse_rate1_temp = np.less(lapse_rate, 4)
+        termine_a = check_termine_a(key)
+        termine_a_uno = termine_a['one'][0]
+        termine_a_due_inf = termine_a['two'][0]
+        termine_a_due_sup = termine_a['two'][1]
+        termine_a_tre = termine_a['three'][0]
+
+        lapse_rate1_temp = np.less_equal(lapse_rate, termine_a_uno)
         np.putmask(lapse_rate, lapse_rate1_temp, 1)
 
-        lapse_rate3_temp = np.greater_equal(lapse_rate, 8)
+        lapse_rate3_temp = np.greater_equal(lapse_rate, termine_a_tre)
         np.putmask(lapse_rate, lapse_rate3_temp, 3)
 
-        lapse_rate2_temp = np.logical_and([np.greater_equal(lapse_rate, 4)],
-                                          [np.less(lapse_rate, 8)])
+        lapse_rate2_temp = np.logical_and([np.greater(lapse_rate, termine_a_due_inf)],
+                                          [np.less(lapse_rate, termine_a_due_sup)])
         np.putmask(lapse_rate, lapse_rate2_temp, 2)
 
         """Write geotiff lapse_rate_reclass"""
@@ -127,15 +178,21 @@ def write_haines_array(key, value, src_ds, variable_dict, i, writegeotiff, varia
         if (writegeotiff):
             write_geotiff('haines_images/moisture_values', tempo, src_ds, moisture, key)
 
+        termine_b = check_termine_b(key)
+        termine_b_uno = termine_b['one'][0]
+        termine_b_due_inf = termine_b['two'][0]
+        termine_b_due_sup = termine_b['two'][1]
+        termine_b_tre = termine_b['three'][0]
+
         """Calcolo Factor Values (B)"""
-        moisture1_temp = np.less(moisture, 6)
+        moisture1_temp = np.less_equal(moisture, termine_b_uno)
         np.putmask(moisture, moisture1_temp, 1)
 
-        moisture3_temp = np.greater_equal(moisture, 10)
+        moisture3_temp = np.greater_equal(moisture, termine_b_tre)
         np.putmask(moisture, moisture3_temp, 3)
 
-        moisture2_temp = np.logical_and([np.greater_equal(moisture, 6)],
-                                        [np.less(moisture, 10)])
+        moisture2_temp = np.logical_and([np.greater(moisture, termine_b_due_inf)],
+                                        [np.less(moisture, termine_b_due_sup)])
         np.putmask(moisture, moisture2_temp, 2)
 
         """Write geotiff moisture_reclass"""
@@ -149,22 +206,21 @@ def write_haines_array(key, value, src_ds, variable_dict, i, writegeotiff, varia
         haines_index = lapse_rate + moisture
 
         """Write geotiff haines index values"""
-        if (writegeotiff):
-            write_geotiff('haines_images/haines_index_values', tempo, src_ds, haines_index, key)
+        #if (writegeotiff):
+        #    write_geotiff('haines_images/haines_index_values', tempo, src_ds, haines_index, key)
 
         """Class of day (potential for large fire)"""
-        haines_index_verylow_temp = np.logical_or([np.equal(haines_index, 2)],
-                                                  [np.equal(haines_index, 3)])
-        np.putmask(haines_index, haines_index_verylow_temp, 1)
+        #haines_index_verylow_temp = np.logical_or([np.equal(haines_index, 2)], [np.equal(haines_index, 3)])
+        #np.putmask(haines_index, haines_index_verylow_temp, 1)
 
-        haines_index_low_temp = np.equal(haines_index, 4)
-        np.putmask(haines_index, haines_index_low_temp, 2)
+        #haines_index_low_temp = np.equal(haines_index, 4)
+        #np.putmask(haines_index, haines_index_low_temp, 2)
 
-        haines_index_moderate_temp = np.equal(haines_index, 5)
-        np.putmask(haines_index, haines_index_moderate_temp, 3)
+        #haines_index_moderate_temp = np.equal(haines_index, 5)
+        #np.putmask(haines_index, haines_index_moderate_temp, 3)
 
-        haines_index_high_temp = np.equal(haines_index, 6)
-        np.putmask(haines_index, haines_index_high_temp, 4)
+        #haines_index_high_temp = np.equal(haines_index, 6)
+        #np.putmask(haines_index, haines_index_high_temp, 4)
 
         """Write geotiff haines index"""
         write_geotiff('haines_images/haines_index_reclass', tempo, src_ds, haines_index, key, gdal.GDT_Int16)
@@ -266,7 +322,7 @@ def haines_index_calc(types):
         })
 
         for key, value in types.items():
-            write_haines_array(key, value, src_ds, variable_dict, i, False, variable_haines_list)
+            write_haines_array(key, value, src_ds, variable_dict, i, True, variable_haines_list)
 
     variable_haines_list_lenght = len(variable_haines_list)
 
@@ -315,11 +371,7 @@ def haines_index_calc(types):
 
         new_total = new_low+new_mid+new_high
 
-        write_geotiff('haines_images_all/haines_index_reclass', variable_haines_list[c]['tempo'], src_ds, new_total, 'ALL')
-
-
-
-
+        write_geotiff('haines_images_all/haines_index_reclass', variable_haines_list[c]['tempo'], src_ds, new_total, 'ALL', gdal.GDT_Byte)
 
 """
 OROGRAFIA
