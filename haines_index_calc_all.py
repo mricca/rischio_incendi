@@ -206,21 +206,21 @@ def write_haines_array(key, value, src_ds, variable_dict, i, writegeotiff, varia
         haines_index = lapse_rate + moisture
 
         """Write geotiff haines index values"""
-        #if (writegeotiff):
-        #    write_geotiff('haines_images/haines_index_values', tempo, src_ds, haines_index, key)
+        if (writegeotiff):
+            write_geotiff('haines_images/haines_index_values', tempo, src_ds, haines_index, key)
 
         """Class of day (potential for large fire)"""
-        #haines_index_verylow_temp = np.logical_or([np.equal(haines_index, 2)], [np.equal(haines_index, 3)])
-        #np.putmask(haines_index, haines_index_verylow_temp, 1)
+        haines_index_verylow_temp = np.logical_or([np.equal(haines_index, 2)], [np.equal(haines_index, 3)])
+        np.putmask(haines_index, haines_index_verylow_temp, 1)
 
-        #haines_index_low_temp = np.equal(haines_index, 4)
-        #np.putmask(haines_index, haines_index_low_temp, 2)
+        haines_index_low_temp = np.equal(haines_index, 4)
+        np.putmask(haines_index, haines_index_low_temp, 2)
 
-        #haines_index_moderate_temp = np.equal(haines_index, 5)
-        #np.putmask(haines_index, haines_index_moderate_temp, 3)
+        haines_index_moderate_temp = np.equal(haines_index, 5)
+        np.putmask(haines_index, haines_index_moderate_temp, 3)
 
-        #haines_index_high_temp = np.equal(haines_index, 6)
-        #np.putmask(haines_index, haines_index_high_temp, 4)
+        haines_index_high_temp = np.equal(haines_index, 6)
+        np.putmask(haines_index, haines_index_high_temp, 4)
 
         """Write geotiff haines index"""
         write_geotiff('haines_images/haines_index_reclass', tempo, src_ds, haines_index, key, gdal.GDT_Int16)
